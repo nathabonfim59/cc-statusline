@@ -1,38 +1,11 @@
-# claude-statusline
+# CC-statusline
 
-A sane, fast, adaptive and themeable status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+A fast, customizable and themeable status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Single Go binary. Works in tmux and doesn't break when you resize your terminal.
 
-![statusline preview](<!-- screenshot: full status bar -->)
+<img width="851" height="123" alt="image" src="https://github.com/user-attachments/assets/162f91cd-35d4-45f7-ad47-bac65e8b2fe6" />
+
 
 ## Install
-
-**Linux / macOS**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
-```
-
-Installs to `~/.local/bin` by default. Override with `INSTALL_DIR`:
-
-```bash
-INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
-```
-
-**Windows (PowerShell)**
-
-```powershell
-irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
-```
-
-Installs to `$env:USERPROFILE\.local\bin` by default. Override with `$env:INSTALL_DIR`:
-
-```powershell
-$env:INSTALL_DIR = "C:\tools"; irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
-```
-
-Both scripts will print instructions if the install directory is not in your `PATH`.
-
-Or via `go install`:
 
 ```bash
 go install github.com/nathabonfim59/claude-statusline@latest
@@ -69,7 +42,7 @@ This creates `~/.config/claude-statusline/config.yaml` (or `%AppData%\claude-sta
 
 ## Configuration
 
-Every field is optional — missing values fall back to defaults.
+Every field is optional. Missing values fall back to defaults.
 
 ```yaml
 theme: default
@@ -89,22 +62,22 @@ blocks:
 
 Built-in themes:
 
-| Name | Config value |
-|---|---|
-| Default | `default` |
-| One Dark | `onedark` |
-| Monokai | `monokai` |
-| Catppuccin Mocha | `catppuccin` |
-| Dracula | `dracula` |
-| JetBrains Dark | `jetbrains` |
+| Name | Config value | Preview |
+|---|---|---|
+| Default | `default` | <img width="879" height="70" alt="image" src="https://github.com/user-attachments/assets/f0dc3abb-3b2c-4a57-843a-6b779d70c302" /> |
+| One Dark | `onedark` | <img width="883" height="71" alt="image" src="https://github.com/user-attachments/assets/1d67c615-83b6-4666-8753-820b45ef6766" /> |
+| Monokai | `monokai` | <img width="870" height="68" alt="image" src="https://github.com/user-attachments/assets/3493e032-6c3b-4e32-9faf-7e3b3b2599de" /> |
+| Catppuccin Mocha | `catppuccin` | <img width="882" height="72" alt="image" src="https://github.com/user-attachments/assets/38129f49-94d9-4822-abc9-0bf99ce3b9d9" /> |
+| Dracula | `dracula` | <img width="886" height="69" alt="image" src="https://github.com/user-attachments/assets/32a53d2d-f8db-4b9b-ad7e-bbab1d8873d3" /> |
+| JetBrains Dark | `jetbrains` | <img width="880" height="67" alt="image" src="https://github.com/user-attachments/assets/5d51cebb-c141-4009-ac50-4c47620ed6e5" /> |
 
 Set to a custom name to load `~/.config/claude-statusline/themes/<name>.yaml`.
 
 ### Thresholds
 
-As a session grows, the model's context window fills up and response quality degrades — the model starts repeating itself, forgetting earlier instructions, or making mistakes. The progress bar's threshold markers (`|`) and color changes help you spot this before it becomes a problem.
+As a session grows, the model's context window fills up and response quality degrades: the model starts repeating itself, forgetting earlier instructions, or making mistakes. The progress bar's threshold markers (`|`) and color changes help you spot this before it becomes a problem.
 
-You can set different thresholds per model, since some models degrade sooner than others. Works with any model ID — Claude, GLM, whatever you're using.
+You can set different thresholds per model, since some models degrade sooner than others. Works with any model ID: Claude, GLM, whatever you're using.
 
 ```yaml
 thresholds:
@@ -114,20 +87,20 @@ thresholds:
   claude-opus-4-7:    # Opus still works well past 50%
     warning: 60
     danger: 80
-  GLM-5.1[1m]:        # GLM plan — set tighter if it degrades early
+  GLM-5.1[1m]:        # GLM plan: set tighter if it degrades early
     warning: 40
     danger: 60
 ```
 
 ### Adaptive Layout
 
-The statusline adapts to your terminal width in real time. Resize a tmux pane, shrink a terminal window — the next response automatically reflows to fit. Blocks that don't fit get dropped in the order you define, so you always see what matters most.
+The statusline adapts to your terminal width in real time. Resize a tmux pane, shrink a terminal window: the next response automatically reflows to fit. Blocks that don't fit get dropped in the order you define, so you always see what matters most.
 
-You control this through `compact` — it's a priority list. Blocks listed first are the last to be removed when space is tight. Combine it with `line1` and `line2` to decide what shows on each row and in what order:
+You control this through `compact`: it's a priority list. Blocks listed first are the last to be removed when space is tight. Combine it with `line1` and `line2` to decide what shows on each row and in what order:
 
 ```yaml
 blocks:
-  line1: [model, git, project, version]     # top row — full order
+  line1: [model, git, project, version]     # top row, full order
   line2: [bar, percent, cost, time, tokens, rates, diff, hash]  # bottom row
   compact: [model, bar, percent, cost, ...] # drop order when narrow
 ```
@@ -186,17 +159,6 @@ danger: "\033[38;5;75m"   # raw ANSI escape
 2. Built-in (compiled-in `themes/*.yaml`)
 3. Hard-coded fallback (cyan/white/green/yellow/red)
 
-### Built-in Themes
-
-| Theme | Screenshot |
-|---|---|
-| **Default** — Classic ANSI colors. Works in every terminal. | <!-- screenshot: default theme --> |
-| **One Dark** — From the [One Dark](https://github.com/joshdick/onedark.vim) color scheme. | <!-- screenshot: onedark theme --> |
-| **Monokai** — From the [Monokai](https://monokai.pro/) color palette. | <!-- screenshot: monokai theme --> |
-| **Catppuccin Mocha** — From the [Catppuccin](https://catppuccin.com/) theme collection. | <!-- screenshot: catppuccin theme --> |
-| **Dracula** — From the [Dracula](https://draculatheme.com/) theme. | <!-- screenshot: dracula theme --> |
-| **JetBrains Dark** — Based on the JetBrains IDE dark theme. | <!-- screenshot: jetbrains theme --> |
-
 ## Creating a Custom Theme
 
 1. Create a YAML file in `~/.config/claude-statusline/themes/`:
@@ -223,7 +185,17 @@ danger: "\033[38;5;75m"   # raw ANSI escape
    echo '{"session_id":"test","model":{"id":"claude-sonnet-4-6","display_name":"Sonnet 4.6"},"cwd":"/tmp/myproject","context_window":{"context_window_size":200000,"used_percentage":42,"current_usage":{"input_tokens":80000,"cache_read_input_tokens":50000,"cache_creation_input_tokens":0,"output_tokens":3000}},"cost":{"total_cost_usd":1.23,"total_duration_ms":185000,"total_api_duration_ms":120000,"total_lines_added":45,"total_lines_removed":12},"rate_limits":{"five_hour":{"used_percentage":30},"seven_day":{"used_percentage":15}}}' | ./claude-statusline
    ```
 
-You can mix color formats, and only `primary` is required — missing roles fall back to defaults. Placing a file like `monokai.yaml` in your themes directory overrides the built-in of the same name.
+You can mix color formats, and only `primary` is required. Missing roles fall back to defaults. Placing a file like `monokai.yaml` in your themes directory overrides the built-in of the same name.
+
+### Acknowledgment
+
+| Theme |
+|---|
+| **One Dark** - From the [One Dark](https://github.com/joshdick/onedark.vim) color scheme. |
+| **Monokai** - From the [Monokai](https://monokai.pro/) color palette. |
+| **Catppuccin Mocha** - From the [Catppuccin](https://catppuccin.com/) theme collection. |
+| **Dracula** - From the [Dracula](https://draculatheme.com/) theme. |
+| **JetBrains Dark** - Based on the JetBrains IDE [dark theme](https://github.com/artemevsevev/zed-theme-jetbrains). |
 
 ## License
 
