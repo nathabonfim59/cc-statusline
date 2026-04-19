@@ -20,16 +20,12 @@ build:
 release: build
 	@if [ -z "$(TAG)" ]; then echo "Usage: make release TAG=v1.0.0"; exit 1; fi
 	git tag $(TAG)
-	git push origin $(TAG)
-	gh release create $(TAG) \
-		--title "$(TAG)" \
-		--generate-notes \
-		$(BIN_DIR)/$(BINARY)-linux-amd64 \
-		$(BIN_DIR)/$(BINARY)-linux-arm64 \
-		$(BIN_DIR)/$(BINARY)-linux-amd64-musl \
-		$(BIN_DIR)/$(BINARY)-darwin-amd64 \
-		$(BIN_DIR)/$(BINARY)-darwin-arm64 \
-		$(BIN_DIR)/$(BINARY)-windows-amd64.exe
+	@echo ""
+	@echo "Tag $(TAG) created. Push it with:"
+	@echo ""
+	@echo "  git push origin $(TAG)"
+	@echo ""
+	@echo "Then attach the binaries from $(BIN_DIR)/ to the GitHub release."
 
 clean:
 	rm -rf $(BIN_DIR)
