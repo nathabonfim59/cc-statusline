@@ -12,8 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"syscall"
-	"unsafe"
 )
 
 const (
@@ -252,16 +250,13 @@ func terminalWidth() int {
 			return w
 		}
 	}
-	type winsize struct {
-		Rows uint16
-		Cols uint16
-		X    uint16
-		Y    uint16
-	}
-	ws := winsize{}
-	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(os.Stderr.Fd()), uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&ws)))
-	if ws.Cols > 0 {
-		return int(ws.Cols)
+	if os.Getenv("TMUX") != "" {
+		out, err := exec.Command("tmux", "display-message", "-p", "#{pane_width}").Output()
+		if err == nil {
+			if w, err := strconv.Atoi(strings.TrimSpace(string(out))); err == nil && w > 0 {
+				return w
+			}
+		}
 	}
 	return 80
 }
