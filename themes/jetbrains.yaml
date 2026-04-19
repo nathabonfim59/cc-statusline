@@ -1,0 +1,7 @@
+name: JetBrains Dark
+colors:
+  primary: "#3474F0"
+  text: "#DFE1E5"
+  success: "#6BCC62"
+  warning: "#E0CE70"
+  danger: "#F27481"

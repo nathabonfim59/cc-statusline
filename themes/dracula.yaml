@@ -1,0 +1,7 @@
+name: Dracula
+colors:
+  primary: "#BD93F9"
+  text: "#F8F8F2"
+  success: "#50FA7B"
+  warning: "#F1FA8C"
+  danger: "#FF5555"
