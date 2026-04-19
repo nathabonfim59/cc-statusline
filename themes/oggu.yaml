@@ -1,0 +1,7 @@
+name: Oggu
+colors:
+  primary: "#ffdd33"
+  text: "#e4e4ef"
+  success: "#73c936"
+  warning: "#cc8c3c"
+  danger: "#f43841"

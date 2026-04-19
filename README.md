@@ -98,6 +98,7 @@ Built-in themes:
 | Catppuccin Mocha | `catppuccin` | <img width="882" height="72" alt="image" src="https://github.com/user-attachments/assets/38129f49-94d9-4822-abc9-0bf99ce3b9d9" /> |
 | Dracula | `dracula` | <img width="886" height="69" alt="image" src="https://github.com/user-attachments/assets/32a53d2d-f8db-4b9b-ad7e-bbab1d8873d3" /> |
 | JetBrains Dark | `jetbrains` | <img width="880" height="67" alt="image" src="https://github.com/user-attachments/assets/5d51cebb-c141-4009-ac50-4c47620ed6e5" /> |
+| Oggu | `oggu` | <img width="979" height="65" alt="image" src="https://github.com/user-attachments/assets/2083a3ac-9b1f-4e03-90af-8cae2d247d87" /> |
 
 Set to a custom name to load `~/.config/claude-statusline/themes/<name>.yaml`.
 
