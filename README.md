@@ -100,6 +100,16 @@ Built-in themes:
 | JetBrains Dark | `jetbrains` | <img width="880" height="67" alt="image" src="https://github.com/user-attachments/assets/5d51cebb-c141-4009-ac50-4c47620ed6e5" /> |
 | Oggu | `oggu` | <img width="979" height="65" alt="image" src="https://github.com/user-attachments/assets/2083a3ac-9b1f-4e03-90af-8cae2d247d87" /> |
 
+| Name | Config value | Preview |
+|---|---|---|
+| Default | `default` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/fd0fdf9e-6446-4b68-9c62-232f371723a0" /> |
+| One Dark | `onedark` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/67ced750-bc59-4542-a624-14a612912d95" /> |
+| Monokai | `monokai` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/6713c655-03cd-48eb-a44d-d1e5e71054e1" /> |
+| Catppuccin Mocha | `catppuccin` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/eef7246f-2c50-410b-851f-48783c38453b" /> |
+| Dracula | `dracula` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/9ae30ed3-23a7-4893-b433-0ee1e208f790" /> |
+| JetBrains Dark | `jetbrains` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/736f598a-7ed7-4664-9e0d-a641e17e3f43" /> |
+| Oggu | `oggu` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/6a390604-f7fc-4cf3-af06-7ed340fe7d86" /> |
+
 Set to a custom name to load `~/.config/claude-statusline/themes/<name>.yaml`.
 
 ### Thresholds
