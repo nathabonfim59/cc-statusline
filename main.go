@@ -30,6 +30,7 @@ const (
 
 type Input struct {
 	Model struct {
+		ID          string `json:"id"`
 		DisplayName string `json:"display_name"`
 	} `json:"model"`
 	CWD       string `json:"cwd"`
@@ -92,15 +93,44 @@ func repeat(s string, n int) string {
 	return strings.Repeat(s, n)
 }
 
-func progressBar(pct float64, t ResolvedTheme) (bar, pctPart string) {
+type ThresholdConfig struct {
+	Warning float64 `yaml:"warning"`
+	Danger  float64 `yaml:"danger"`
+}
+
+func resolveThresholds(cfg Config, modelID string) (warn, danger float64) {
+	warn, danger = 50, 75
+	if cfg.Thresholds == nil {
+		return
+	}
+	if d, ok := cfg.Thresholds["default"]; ok {
+		if d.Warning > 0 {
+			warn = d.Warning
+		}
+		if d.Danger > 0 {
+			danger = d.Danger
+		}
+	}
+	if t, ok := cfg.Thresholds[modelID]; ok {
+		if t.Warning > 0 {
+			warn = t.Warning
+		}
+		if t.Danger > 0 {
+			danger = t.Danger
+		}
+	}
+	return
+}
+
+func progressBar(pct float64, t ResolvedTheme, warn, danger float64) (bar, pctPart string) {
 	const barWidth = 20
 	filled := int(math.Round(pct * barWidth / 100))
 	if filled > barWidth {
 		filled = barWidth
 	}
 
-	greenEnd := barWidth * 50 / 100  // 10
-	yellowEnd := barWidth * 75 / 100 // 15
+	greenEnd := int(math.Round(warn * float64(barWidth) / 100))
+	yellowEnd := int(math.Round(danger * float64(barWidth) / 100))
 
 	g := min(filled, greenEnd)
 	y := 0
@@ -139,9 +169,9 @@ func progressBar(pct float64, t ResolvedTheme) (bar, pctPart string) {
 
 	var col string
 	switch {
-	case pct >= 75:
+	case pct >= danger:
 		col = t.Danger
-	case pct >= 50:
+	case pct >= warn:
 		col = t.Warning
 	default:
 		col = t.Success
@@ -230,6 +260,8 @@ func main() {
 	var in Input
 	_ = json.Unmarshal(buf.Bytes(), &in)
 
+	warn, danger := resolveThresholds(cfg, in.Model.ID)
+
 	cwd := in.CWD
 	if cwd == "" {
 		cwd = in.Workspace.CurrentDir
@@ -302,7 +334,7 @@ func main() {
 	line1 := strings.Join(parts1, " "+sep+" ")
 
 	// ── Line 2 ────────────────────────────────────────────────────────────────
-	bar, pctPart := progressBar(in.ContextWindow.UsedPercentage, t)
+	bar, pctPart := progressBar(in.ContextWindow.UsedPercentage, t, warn, danger)
 
 	costPart := dim + "$?" + reset
 	if in.Cost.TotalCostUSD > 0 {

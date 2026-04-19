@@ -5,3 +5,12 @@
 # Built-in themes: default, onedark, monokai, catppuccin
 # You can also create custom themes in ~/.config/claude-statusline/themes/
 theme: default
+
+# Context window progress bar thresholds (%).
+# warning: bar turns yellow at this percentage
+# danger: bar turns red at this percentage
+# Override per model using the model ID from Claude Code (e.g. claude-opus-4-7).
+thresholds:
+  default:
+    warning: 50
+    danger: 75

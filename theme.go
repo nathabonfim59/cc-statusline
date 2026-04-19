@@ -40,7 +40,8 @@ type ResolvedTheme struct {
 }
 
 type Config struct {
-	Theme string `yaml:"theme"`
+	Theme      string                     `yaml:"theme"`
+	Thresholds map[string]ThresholdConfig `yaml:"thresholds"`
 }
 
 var builtinDefault = ThemeFile{
