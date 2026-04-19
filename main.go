@@ -12,15 +12,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
+	"unsafe"
 )
 
-// ANSI style modifiers (not colors — not theme-controlled)
 const (
 	reset = "\033[0m"
 	bold  = "\033[1m"
 	dim   = "\033[2m"
 
-	// named ANSI colors kept for resolveColor mapping
 	cyan   = "\033[36m"
 	green  = "\033[32m"
 	yellow = "\033[33m"
@@ -240,6 +240,32 @@ func projectVersion(dirs ...string) string {
 	return ""
 }
 
+var ansiRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+func visibleWidth(s string) int {
+	return len(ansiRe.ReplaceAllString(s, ""))
+}
+
+func terminalWidth() int {
+	if col := os.Getenv("COLUMNS"); col != "" {
+		if w, err := strconv.Atoi(col); err == nil && w > 0 {
+			return w
+		}
+	}
+	type winsize struct {
+		Rows uint16
+		Cols uint16
+		X    uint16
+		Y    uint16
+	}
+	ws := winsize{}
+	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(os.Stderr.Fd()), uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&ws)))
+	if ws.Cols > 0 {
+		return int(ws.Cols)
+	}
+	return 80
+}
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "init" {
 		runInit()
@@ -274,22 +300,23 @@ func main() {
 		projectDir = cwd
 	}
 
-	// ── Line 1 ────────────────────────────────────────────────────────────────
+	// ── Render all blocks ─────────────────────────────────────────────────
 	ctxSize := in.ContextWindow.ContextWindowSize
 	ctxHuman := humanTokens(ctxSize)
 	ctxInUse := in.ContextWindow.CurrentUsage.CacheReadInputTokens +
 		in.ContextWindow.CurrentUsage.CacheCreationInputTokens +
 		in.ContextWindow.CurrentUsage.InputTokens
 
-	modelPart := fmt.Sprintf("%s%s%s%s %s(%s context)%s",
+	blocks := make(map[string]string)
+
+	blocks["model"] = fmt.Sprintf("%s%s%s%s %s(%s context)%s",
 		t.Primary, bold, in.Model.DisplayName, reset,
 		dim, ctxHuman, reset)
 	if ctxInUse > 0 {
-		modelPart += fmt.Sprintf(" %s[%s]%s", t.Text, humanTokens(ctxInUse), reset)
+		blocks["model"] += fmt.Sprintf(" %s[%s]%s", t.Text, humanTokens(ctxInUse), reset)
 	}
 
 	branch, gitAdded, gitModified, gitUntracked, hash := gitInfo(cwd)
-	gitPart := ""
 	if branch != "" {
 		counts := ""
 		if gitAdded > 0 {
@@ -303,14 +330,14 @@ func main() {
 		}
 		counts = strings.TrimSpace(counts)
 		if counts != "" {
-			gitPart = fmt.Sprintf("%s%s%s %s%s%s", t.Success, branch, reset, dim, counts, reset)
+			blocks["git"] = fmt.Sprintf("%s%s%s %s%s%s", t.Success, branch, reset, dim, counts, reset)
 		} else {
-			gitPart = fmt.Sprintf("%s%s%s", t.Success, branch, reset)
+			blocks["git"] = fmt.Sprintf("%s%s%s", t.Success, branch, reset)
 		}
 	}
 
 	projectName := filepath.Base(projectDir)
-	projectPart := t.Text + projectName + reset
+	blocks["project"] = t.Text + projectName + reset
 
 	version := in.Version
 	if version == "" {
@@ -318,23 +345,13 @@ func main() {
 	} else {
 		version = "v" + version
 	}
-	versionPart := ""
 	if version != "" {
-		versionPart = dim + version + reset
+		blocks["version"] = dim + version + reset
 	}
 
-	parts1 := []string{modelPart}
-	if gitPart != "" {
-		parts1 = append(parts1, gitPart)
-	}
-	parts1 = append(parts1, projectPart)
-	if versionPart != "" {
-		parts1 = append(parts1, versionPart)
-	}
-	line1 := strings.Join(parts1, " "+sep+" ")
-
-	// ── Line 2 ────────────────────────────────────────────────────────────────
 	bar, pctPart := progressBar(in.ContextWindow.UsedPercentage, t, warn, danger)
+	blocks["bar"] = "[" + bar + "]"
+	blocks["percent"] = pctPart
 
 	costPart := dim + "$?" + reset
 	if in.Cost.TotalCostUSD > 0 {
@@ -345,30 +362,25 @@ func main() {
 			costPart = fmt.Sprintf("%s$%.2f%s", t.Text, c, reset)
 		}
 	}
+	blocks["cost"] = costPart
 
-	timePart := ""
 	if in.Cost.TotalDurationMS > 0 {
 		elapsed := humanDuration(in.Cost.TotalDurationMS)
 		if in.Cost.TotalAPIDurationMS > 0 {
 			apiS := in.Cost.TotalAPIDurationMS / 1000
-			timePart = fmt.Sprintf("%s%s (api:%ds)%s", dim, elapsed, apiS, reset)
+			blocks["time"] = fmt.Sprintf("%s%s (api:%ds)%s", dim, elapsed, apiS, reset)
 		} else {
-			timePart = dim + elapsed + reset
+			blocks["time"] = dim + elapsed + reset
 		}
 	}
 
-	tokenPart := ""
 	cu := in.ContextWindow.CurrentUsage
 	totalCur := cu.InputTokens + cu.CacheReadInputTokens + cu.CacheCreationInputTokens
 	if totalCur > 0 {
-		cachePct := 0.0
-		if totalCur > 0 {
-			cachePct = float64(cu.CacheReadInputTokens) / float64(totalCur) * 100
-		}
-		tokenPart = fmt.Sprintf("%s%s cache:%.0f%%%s", dim, humanTokens(totalCur), cachePct, reset)
+		cachePct := float64(cu.CacheReadInputTokens) / float64(totalCur) * 100
+		blocks["tokens"] = fmt.Sprintf("%s%s cache:%.0f%%%s", dim, humanTokens(totalCur), cachePct, reset)
 	}
 
-	ratePart := ""
 	fh := in.RateLimits.FiveHour.UsedPercentage
 	sd := in.RateLimits.SevenDay.UsedPercentage
 	if fh > 0 || sd > 0 {
@@ -382,39 +394,68 @@ func main() {
 			}
 			r += fmt.Sprintf("7d:%.0f%%", sd)
 		}
-		ratePart = dim + r + reset
+		blocks["rates"] = dim + r + reset
 	}
 
-	diffPart := ""
 	if in.Cost.TotalLinesAdded > 0 || in.Cost.TotalLinesRemoved > 0 {
-		diffPart = fmt.Sprintf("%s+%d%s %s-%d%s",
+		blocks["diff"] = fmt.Sprintf("%s+%d%s %s-%d%s",
 			t.Success, in.Cost.TotalLinesAdded, reset,
 			t.Danger, in.Cost.TotalLinesRemoved, reset)
 	}
 
-	hashPart := ""
 	if hash != "" {
-		hashPart = dim + hash + reset
+		blocks["hash"] = dim + hash + reset
 	}
 
-	parts2 := []string{"[" + bar + "]", pctPart, costPart}
-	if timePart != "" {
-		parts2 = append(parts2, timePart)
+	// ── Assemble lines ────────────────────────────────────────────────────
+	tw := terminalWidth()
+	sepLen := visibleWidth(" " + sep + " ")
+
+	buildLine := func(order []string) string {
+		var parts []string
+		for _, name := range order {
+			if s, ok := blocks[name]; ok {
+				parts = append(parts, s)
+			}
+		}
+		line := strings.Join(parts, " "+sep+" ")
+		if visibleWidth(line) <= tw {
+			return line
+		}
+		// Compact: keep only blocks from this line in compact priority order
+		lineSet := make(map[string]bool)
+		for _, name := range order {
+			lineSet[name] = true
+		}
+		var compact []string
+		for _, name := range cfg.Blocks.Compact {
+			if lineSet[name] {
+				if s, ok := blocks[name]; ok {
+					compact = append(compact, s)
+				}
+			}
+		}
+		var fit []string
+		w := 0
+		for _, s := range compact {
+			need := visibleWidth(s)
+			if len(fit) > 0 {
+				need += sepLen
+			}
+			if w+need > tw {
+				break
+			}
+			fit = append(fit, s)
+			w += need
+		}
+		if len(fit) == 0 && len(compact) > 0 {
+			fit = compact[:1]
+		}
+		return strings.Join(fit, " "+sep+" ")
 	}
-	if tokenPart != "" {
-		parts2 = append(parts2, tokenPart)
-	}
-	if ratePart != "" {
-		parts2 = append(parts2, ratePart)
-	}
-	if diffPart != "" {
-		parts2 = append(parts2, diffPart)
-	}
-	if hashPart != "" {
-		parts2 = append(parts2, hashPart)
-	}
-	line2 := strings.Join(parts2, " "+sep+" ")
+
+	line1 := buildLine(cfg.Blocks.Line1)
+	line2 := buildLine(cfg.Blocks.Line2)
 
 	fmt.Printf("%s\n%s", line1, line2)
 }
-

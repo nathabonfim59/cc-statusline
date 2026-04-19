@@ -14,3 +14,12 @@ thresholds:
   default:
     warning: 50
     danger: 75
+
+# Which blocks to show and in what order.
+# Available blocks for line1: model, git, project, version
+# Available blocks for line2: bar, percent, cost, time, tokens, rates, diff, hash
+# compact: priority order — blocks listed first are kept when the terminal is narrow.
+blocks:
+  line1: [model, git, project, version]
+  line2: [bar, percent, cost, time, tokens, rates, diff, hash]
+  compact: [model, bar, percent, cost, git, project, hash, time, tokens, rates, diff, version]

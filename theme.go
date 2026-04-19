@@ -39,9 +39,16 @@ type ResolvedTheme struct {
 	Danger  string
 }
 
+type BlockConfig struct {
+	Line1   []string `yaml:"line1"`
+	Line2   []string `yaml:"line2"`
+	Compact []string `yaml:"compact"`
+}
+
 type Config struct {
 	Theme      string                     `yaml:"theme"`
 	Thresholds map[string]ThresholdConfig `yaml:"thresholds"`
+	Blocks     BlockConfig                `yaml:"blocks"`
 }
 
 var builtinDefault = ThemeFile{
@@ -90,12 +97,28 @@ func runInit() {
 }
 
 func loadConfig() Config {
-	cfg := Config{Theme: "default"}
+	cfg := Config{
+		Theme: "default",
+		Blocks: BlockConfig{
+			Line1:   []string{"model", "git", "project", "version"},
+			Line2:   []string{"bar", "percent", "cost", "time", "tokens", "rates", "diff", "hash"},
+			Compact: []string{"model", "bar", "percent", "cost", "git", "project", "hash", "time", "tokens", "rates", "diff", "version"},
+		},
+	}
 	data, err := os.ReadFile(filepath.Join(configDir(), "config.yaml"))
 	if err != nil {
 		return cfg
 	}
 	_ = yaml.Unmarshal(data, &cfg)
+	if len(cfg.Blocks.Line1) == 0 {
+		cfg.Blocks.Line1 = []string{"model", "git", "project", "version"}
+	}
+	if len(cfg.Blocks.Line2) == 0 {
+		cfg.Blocks.Line2 = []string{"bar", "percent", "cost", "time", "tokens", "rates", "diff", "hash"}
+	}
+	if len(cfg.Blocks.Compact) == 0 {
+		cfg.Blocks.Compact = []string{"model", "bar", "percent", "cost", "git", "project", "hash", "time", "tokens", "rates", "diff", "version"}
+	}
 	return cfg
 }
 
