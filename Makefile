@@ -1,6 +1,7 @@
 BINARY  := claude-statusline
 REPO    := nathabonfim59/claude-statusline
 BIN_DIR := bin
+TAG     ?= $(VERSION)
 VERSION ?= $(shell git describe --tags --always --dirty)
 LDFLAGS := -s -w
 
