@@ -211,6 +211,11 @@ func projectVersion(dirs ...string) string {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "init" {
+		runInit()
+		return
+	}
+
 	cfg := loadConfig()
 	t := loadTheme(cfg.Theme)
 	sep := dim + "|" + reset
@@ -381,16 +386,3 @@ func main() {
 	fmt.Printf("%s\n%s", line1, line2)
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

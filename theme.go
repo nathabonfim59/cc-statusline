@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -50,7 +51,12 @@ var builtinDefault = ThemeFile{
 	},
 }
 
-func xdgConfigDir() string {
+func configDir() string {
+	if runtime.GOOS == "windows" {
+		if dir, err := os.UserConfigDir(); err == nil {
+			return filepath.Join(dir, "claude-statusline")
+		}
+	}
 	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
 		return filepath.Join(xdg, "claude-statusline")
 	}
@@ -58,9 +64,31 @@ func xdgConfigDir() string {
 	return filepath.Join(home, ".config", "claude-statusline")
 }
 
+func runInit() {
+	dir := configDir()
+	themesDir := filepath.Join(dir, "themes")
+	if err := os.MkdirAll(themesDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "error creating config directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	cfgPath := filepath.Join(dir, "config.yaml")
+	if _, err := os.Stat(cfgPath); err == nil {
+		fmt.Printf("config already exists at %s\n", cfgPath)
+		return
+	}
+
+	content := "theme: default\n"
+	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "error writing config: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("created config at %s\n", cfgPath)
+}
+
 func loadConfig() Config {
 	cfg := Config{Theme: "default"}
-	data, err := os.ReadFile(filepath.Join(xdgConfigDir(), "config.yaml"))
+	data, err := os.ReadFile(filepath.Join(configDir(), "config.yaml"))
 	if err != nil {
 		return cfg
 	}
@@ -130,7 +158,7 @@ func loadTheme(name string) ResolvedTheme {
 	}
 
 	// 1. Local override
-	localPath := filepath.Join(xdgConfigDir(), "themes", name+".yaml")
+	localPath := filepath.Join(configDir(), "themes", name+".yaml")
 	if data, err := os.ReadFile(localPath); err == nil {
 		var tf ThemeFile
 		if yaml.Unmarshal(data, &tf) == nil && tf.Colors.Primary != "" {
