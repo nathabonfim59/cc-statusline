@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$Repo      = "nathabonfim59/claude-statusline"
+$Repo      = "nathabonfim59/cc-statusline"
 $Binary    = "claude-statusline"
 $InstallDir = if ($env:INSTALL_DIR) { $env:INSTALL_DIR } else { "$env:USERPROFILE\.local\bin" }
 

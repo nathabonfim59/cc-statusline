@@ -10,25 +10,25 @@ A fast, customizable and themeable status line for [Claude Code](https://docs.an
 **Linux / macOS**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nathabonfim59/cc-statusline/main/install.sh | sh
 ```
 
 Installs to `~/.local/bin` by default. Override with `INSTALL_DIR`:
 
 ```bash
-INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
+INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/nathabonfim59/cc-statusline/main/install.sh | sh
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/nathabonfim59/cc-statusline/main/install.ps1 | iex
 ```
 
 Installs to `$env:USERPROFILE\.local\bin` by default. Override with `$env:INSTALL_DIR`:
 
 ```powershell
-$env:INSTALL_DIR = "C:\tools"; irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
+$env:INSTALL_DIR = "C:\tools"; irm https://raw.githubusercontent.com/nathabonfim59/cc-statusline/main/install.ps1 | iex
 ```
 
 Both scripts will print instructions if the install directory is not in your `PATH`.
@@ -42,8 +42,8 @@ go install github.com/nathabonfim59/claude-statusline@latest
 Or build from source:
 
 ```bash
-git clone https://github.com/nathabonfim59/claude-statusline.git
-cd claude-statusline
+git clone https://github.com/nathabonfim59/cc-statusline.git
+cd cc-statusline
 go build -o claude-statusline .
 ```
 
