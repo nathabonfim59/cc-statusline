@@ -92,16 +92,6 @@ Built-in themes:
 
 | Name | Config value | Preview |
 |---|---|---|
-| Default | `default` | <img width="879" height="70" alt="image" src="https://github.com/user-attachments/assets/f0dc3abb-3b2c-4a57-843a-6b779d70c302" /> |
-| One Dark | `onedark` | <img width="883" height="71" alt="image" src="https://github.com/user-attachments/assets/1d67c615-83b6-4666-8753-820b45ef6766" /> |
-| Monokai | `monokai` | <img width="870" height="68" alt="image" src="https://github.com/user-attachments/assets/3493e032-6c3b-4e32-9faf-7e3b3b2599de" /> |
-| Catppuccin Mocha | `catppuccin` | <img width="882" height="72" alt="image" src="https://github.com/user-attachments/assets/38129f49-94d9-4822-abc9-0bf99ce3b9d9" /> |
-| Dracula | `dracula` | <img width="886" height="69" alt="image" src="https://github.com/user-attachments/assets/32a53d2d-f8db-4b9b-ad7e-bbab1d8873d3" /> |
-| JetBrains Dark | `jetbrains` | <img width="880" height="67" alt="image" src="https://github.com/user-attachments/assets/5d51cebb-c141-4009-ac50-4c47620ed6e5" /> |
-| Oggu | `oggu` | <img width="979" height="65" alt="image" src="https://github.com/user-attachments/assets/2083a3ac-9b1f-4e03-90af-8cae2d247d87" /> |
-
-| Name | Config value | Preview |
-|---|---|---|
 | Default | `default` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/fd0fdf9e-6446-4b68-9c62-232f371723a0" /> |
 | One Dark | `onedark` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/67ced750-bc59-4542-a624-14a612912d95" /> |
 | Monokai | `monokai` | <img width="752" height="72" alt="image" src="https://github.com/user-attachments/assets/6713c655-03cd-48eb-a44d-d1e5e71054e1" /> |
