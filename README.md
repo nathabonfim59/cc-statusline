@@ -1,0 +1,202 @@
+# claude-statusline
+
+A sane, fast, adaptive and themeable status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+![statusline preview](<!-- screenshot: full status bar -->)
+
+## Install
+
+```bash
+go install github.com/nathabonfim59/claude-statusline@latest
+```
+
+Or build from source:
+
+```bash
+git clone https://github.com/nathabonfim59/claude-statusline.git
+cd claude-statusline
+go build -o claude-statusline .
+```
+
+Then add it to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.local/bin/claude-statusline"
+  }
+}
+```
+
+## Quick Start
+
+Generate a config file with sensible defaults:
+
+```bash
+claude-statusline init
+```
+
+This creates `~/.config/claude-statusline/config.yaml` (or `%AppData%\claude-statusline\config.yaml` on Windows).
+
+## Configuration
+
+Every field is optional — missing values fall back to defaults.
+
+```yaml
+theme: default
+
+thresholds:
+  default:
+    warning: 50
+    danger: 75
+
+blocks:
+  line1: [model, git, project, version]
+  line2: [bar, percent, cost, time, tokens, rates, diff, hash]
+  compact: [model, bar, percent, cost, git, project, hash, time, tokens, rates, diff, version]
+```
+
+### Theme
+
+Built-in themes:
+
+| Name | Config value |
+|---|---|
+| Default | `default` |
+| One Dark | `onedark` |
+| Monokai | `monokai` |
+| Catppuccin Mocha | `catppuccin` |
+| Dracula | `dracula` |
+| JetBrains Dark | `jetbrains` |
+
+Set to a custom name to load `~/.config/claude-statusline/themes/<name>.yaml`.
+
+### Thresholds
+
+As a session grows, the model's context window fills up and response quality degrades — the model starts repeating itself, forgetting earlier instructions, or making mistakes. The progress bar's threshold markers (`|`) and color changes help you spot this before it becomes a problem.
+
+You can set different thresholds per model, since some models degrade sooner than others. Works with any model ID — Claude, GLM, whatever you're using.
+
+```yaml
+thresholds:
+  default:            # all models
+    warning: 50
+    danger: 75
+  claude-opus-4-7:    # Opus still works well past 50%
+    warning: 60
+    danger: 80
+  GLM-5.1[1m]:        # GLM plan — set tighter if it degrades early
+    warning: 40
+    danger: 60
+```
+
+### Adaptive Layout
+
+The statusline adapts to your terminal width in real time. Resize a tmux pane, shrink a terminal window — the next response automatically reflows to fit. Blocks that don't fit get dropped in the order you define, so you always see what matters most.
+
+You control this through `compact` — it's a priority list. Blocks listed first are the last to be removed when space is tight. Combine it with `line1` and `line2` to decide what shows on each row and in what order:
+
+```yaml
+blocks:
+  line1: [model, git, project, version]     # top row — full order
+  line2: [bar, percent, cost, time, tokens, rates, diff, hash]  # bottom row
+  compact: [model, bar, percent, cost, ...] # drop order when narrow
+```
+
+Only care about the essentials? Remove blocks entirely:
+
+```yaml
+blocks:
+  line1: [model, project]
+  line2: [bar, percent, cost]
+  compact: [model, bar, percent]
+```
+
+#### Available blocks
+
+| Block | Line | Description | Preview |
+|---|---|---|---|
+| `model` | 1 | Model name, context window size, tokens in use | <!-- screenshot: model block --> |
+| `git` | 1 | Branch name with `+N` `~N` `?N` file counts | <!-- screenshot: git block --> |
+| `project` | 1 | Project directory name | <!-- screenshot: project block --> |
+| `version` | 1 | Claude Code or project version | <!-- screenshot: version block --> |
+| `bar` | 2 | Context window progress bar | <!-- screenshot: bar block --> |
+| `percent` | 2 | Context usage percentage | <!-- screenshot: percent block --> |
+| `cost` | 2 | Session cost in USD | <!-- screenshot: cost block --> |
+| `time` | 2 | Elapsed time and API time | <!-- screenshot: time block --> |
+| `tokens` | 2 | Token count with cache hit % | <!-- screenshot: tokens block --> |
+| `rates` | 2 | Rate limit usage (5h / 7d) | <!-- screenshot: rates block --> |
+| `diff` | 2 | Lines added / removed | <!-- screenshot: diff block --> |
+| `hash` | 2 | Short git commit hash | <!-- screenshot: hash block --> |
+
+## Theming
+
+Themes define 5 semantic color roles:
+
+| Role | Where it's used |
+|---|---|
+| `primary` | Model name, section headers |
+| `text` | General info (cost, project, tokens) |
+| `success` | Git branch, progress bar (low), diff `+` |
+| `warning` | Progress bar (medium) |
+| `danger` | Progress bar (high), diff `-` |
+
+### Color formats
+
+Each role accepts three formats:
+
+```yaml
+primary: cyan             # named ANSI (cyan, green, yellow, red, white, dim, bold)
+text: "#ABB2BF"           # hex true color (#RRGGBB)
+danger: "\033[38;5;75m"   # raw ANSI escape
+```
+
+### Resolution order
+
+1. Local override (`~/.config/claude-statusline/themes/<name>.yaml`)
+2. Built-in (compiled-in `themes/*.yaml`)
+3. Hard-coded fallback (cyan/white/green/yellow/red)
+
+### Built-in Themes
+
+| Theme | Screenshot |
+|---|---|
+| **Default** — Classic ANSI colors. Works in every terminal. | <!-- screenshot: default theme --> |
+| **One Dark** — From the [One Dark](https://github.com/joshdick/onedark.vim) color scheme. | <!-- screenshot: onedark theme --> |
+| **Monokai** — From the [Monokai](https://monokai.pro/) color palette. | <!-- screenshot: monokai theme --> |
+| **Catppuccin Mocha** — From the [Catppuccin](https://catppuccin.com/) theme collection. | <!-- screenshot: catppuccin theme --> |
+| **Dracula** — From the [Dracula](https://draculatheme.com/) theme. | <!-- screenshot: dracula theme --> |
+| **JetBrains Dark** — Based on the JetBrains IDE dark theme. | <!-- screenshot: jetbrains theme --> |
+
+## Creating a Custom Theme
+
+1. Create a YAML file in `~/.config/claude-statusline/themes/`:
+
+   ```yaml
+   name: My Theme
+   colors:
+     primary: "#FF79C6"
+     text: "#F8F8F2"
+     success: "#50FA7B"
+     warning: "#F1FA8C"
+     danger: "#FF5555"
+   ```
+
+2. Set `theme` in your config to the filename (without `.yaml`, lowercased):
+
+   ```yaml
+   theme: my-theme
+   ```
+
+3. Test it:
+
+   ```bash
+   echo '{"session_id":"test","model":{"id":"claude-sonnet-4-6","display_name":"Sonnet 4.6"},"cwd":"/tmp/myproject","context_window":{"context_window_size":200000,"used_percentage":42,"current_usage":{"input_tokens":80000,"cache_read_input_tokens":50000,"cache_creation_input_tokens":0,"output_tokens":3000}},"cost":{"total_cost_usd":1.23,"total_duration_ms":185000,"total_api_duration_ms":120000,"total_lines_added":45,"total_lines_removed":12},"rate_limits":{"five_hour":{"used_percentage":30},"seven_day":{"used_percentage":15}}}' | ./claude-statusline
+   ```
+
+You can mix color formats, and only `primary` is required — missing roles fall back to defaults. Placing a file like `monokai.yaml` in your themes directory overrides the built-in of the same name.
+
+## License
+
+[MIT](LICENSE)
