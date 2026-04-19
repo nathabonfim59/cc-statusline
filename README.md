@@ -6,6 +6,34 @@ A sane, fast, adaptive and themeable status line for [Claude Code](https://docs.
 
 ## Install
 
+**Linux / macOS**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
+```
+
+Installs to `~/.local/bin` by default. Override with `INSTALL_DIR`:
+
+```bash
+INSTALL_DIR=/usr/local/bin curl -fsSL https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.sh | sh
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
+```
+
+Installs to `$env:USERPROFILE\.local\bin` by default. Override with `$env:INSTALL_DIR`:
+
+```powershell
+$env:INSTALL_DIR = "C:\tools"; irm https://raw.githubusercontent.com/nathabonfim59/claude-statusline/main/install.ps1 | iex
+```
+
+Both scripts will print instructions if the install directory is not in your `PATH`.
+
+Or via `go install`:
+
 ```bash
 go install github.com/nathabonfim59/claude-statusline@latest
 ```
