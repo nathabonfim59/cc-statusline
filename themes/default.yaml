@@ -1,0 +1,7 @@
+name: Default
+colors:
+  primary: "cyan"
+  text: "white"
+  success: "green"
+  warning: "yellow"
+  danger: "red"

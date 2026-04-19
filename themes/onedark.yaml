@@ -1,0 +1,7 @@
+name: One Dark
+colors:
+  primary: "#61AFEF"
+  text: "#ABB2BF"
+  success: "#98C379"
+  warning: "#E5C07B"
+  danger: "#E06C75"

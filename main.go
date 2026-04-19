@@ -14,26 +14,26 @@ import (
 	"strings"
 )
 
-// ANSI
+// ANSI style modifiers (not colors — not theme-controlled)
 const (
-	reset  = "\033[0m"
+	reset = "\033[0m"
+	bold  = "\033[1m"
+	dim   = "\033[2m"
+
+	// named ANSI colors kept for resolveColor mapping
 	cyan   = "\033[36m"
 	green  = "\033[32m"
 	yellow = "\033[33m"
 	red    = "\033[31m"
-	bold   = "\033[1m"
-	dim    = "\033[2m"
 	white  = "\033[37m"
 )
-
-var sep = dim + "|" + reset
 
 type Input struct {
 	Model struct {
 		DisplayName string `json:"display_name"`
 	} `json:"model"`
-	CWD     string `json:"cwd"`
-	Version string `json:"version"`
+	CWD       string `json:"cwd"`
+	Version   string `json:"version"`
 	Workspace struct {
 		CurrentDir string `json:"current_dir"`
 		ProjectDir string `json:"project_dir"`
@@ -51,11 +51,11 @@ type Input struct {
 		} `json:"current_usage"`
 	} `json:"context_window"`
 	Cost struct {
-		TotalCostUSD      float64 `json:"total_cost_usd"`
-		TotalDurationMS   int64   `json:"total_duration_ms"`
-		TotalAPIDurationMS int64  `json:"total_api_duration_ms"`
-		TotalLinesAdded   int     `json:"total_lines_added"`
-		TotalLinesRemoved int     `json:"total_lines_removed"`
+		TotalCostUSD       float64 `json:"total_cost_usd"`
+		TotalDurationMS    int64   `json:"total_duration_ms"`
+		TotalAPIDurationMS int64   `json:"total_api_duration_ms"`
+		TotalLinesAdded    int     `json:"total_lines_added"`
+		TotalLinesRemoved  int     `json:"total_lines_removed"`
 	} `json:"cost"`
 	RateLimits struct {
 		FiveHour struct {
@@ -92,7 +92,7 @@ func repeat(s string, n int) string {
 	return strings.Repeat(s, n)
 }
 
-func progressBar(pct float64) (bar, pctPart string) {
+func progressBar(pct float64, t ResolvedTheme) (bar, pctPart string) {
 	const barWidth = 20
 	filled := int(math.Round(pct * barWidth / 100))
 	if filled > barWidth {
@@ -120,17 +120,17 @@ func progressBar(pct float64) (bar, pctPart string) {
 
 	var b strings.Builder
 	if g > 0 {
-		b.WriteString(green + repeat("█", g))
+		b.WriteString(t.Success + repeat("█", g))
 	}
 	if emptyBeforeThresh > 0 {
 		b.WriteString(dim + repeat("░", emptyBeforeThresh))
 	}
-	b.WriteString(red + "|" + reset)
+	b.WriteString(t.Danger + "|" + reset)
 	if y > 0 {
-		b.WriteString(yellow + repeat("█", y))
+		b.WriteString(t.Warning + repeat("█", y))
 	}
 	if r > 0 {
-		b.WriteString(red + repeat("█", r))
+		b.WriteString(t.Danger + repeat("█", r))
 	}
 	if emptyAfterThresh > 0 {
 		b.WriteString(dim + repeat("░", emptyAfterThresh) + reset)
@@ -140,11 +140,11 @@ func progressBar(pct float64) (bar, pctPart string) {
 	var col string
 	switch {
 	case pct >= 75:
-		col = red
+		col = t.Danger
 	case pct >= 50:
-		col = yellow
+		col = t.Warning
 	default:
-		col = green
+		col = t.Success
 	}
 	pctPart = fmt.Sprintf("%s%s%.0f%%%s", col, bold, pct, reset)
 	return
@@ -211,6 +211,10 @@ func projectVersion(dirs ...string) string {
 }
 
 func main() {
+	cfg := loadConfig()
+	t := loadTheme(cfg.Theme)
+	sep := dim + "|" + reset
+
 	var buf bytes.Buffer
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
@@ -241,10 +245,10 @@ func main() {
 		in.ContextWindow.CurrentUsage.InputTokens
 
 	modelPart := fmt.Sprintf("%s%s%s%s %s(%s context)%s",
-		cyan, bold, in.Model.DisplayName, reset,
+		t.Primary, bold, in.Model.DisplayName, reset,
 		dim, ctxHuman, reset)
 	if ctxInUse > 0 {
-		modelPart += fmt.Sprintf(" %s[%s]%s", white, humanTokens(ctxInUse), reset)
+		modelPart += fmt.Sprintf(" %s[%s]%s", t.Text, humanTokens(ctxInUse), reset)
 	}
 
 	branch, gitAdded, gitModified, gitUntracked, hash := gitInfo(cwd)
@@ -262,16 +266,15 @@ func main() {
 		}
 		counts = strings.TrimSpace(counts)
 		if counts != "" {
-			gitPart = fmt.Sprintf("%s%s%s %s%s%s", green, branch, reset, dim, counts, reset)
+			gitPart = fmt.Sprintf("%s%s%s %s%s%s", t.Success, branch, reset, dim, counts, reset)
 		} else {
-			gitPart = fmt.Sprintf("%s%s%s", green, branch, reset)
+			gitPart = fmt.Sprintf("%s%s%s", t.Success, branch, reset)
 		}
 	}
 
 	projectName := filepath.Base(projectDir)
-	projectPart := white + projectName + reset
+	projectPart := t.Text + projectName + reset
 
-	// Use version from JSON if available, else scan manifests
 	version := in.Version
 	if version == "" {
 		version = projectVersion(cwd, projectDir)
@@ -294,16 +297,15 @@ func main() {
 	line1 := strings.Join(parts1, " "+sep+" ")
 
 	// ── Line 2 ────────────────────────────────────────────────────────────────
-	usedPct := in.ContextWindow.UsedPercentage
-	bar, pctPart := progressBar(usedPct)
+	bar, pctPart := progressBar(in.ContextWindow.UsedPercentage, t)
 
 	costPart := dim + "$?" + reset
 	if in.Cost.TotalCostUSD > 0 {
 		c := in.Cost.TotalCostUSD
 		if c < 0.01 {
-			costPart = fmt.Sprintf("%s$%.4f%s", white, c, reset)
+			costPart = fmt.Sprintf("%s$%.4f%s", t.Text, c, reset)
 		} else {
-			costPart = fmt.Sprintf("%s$%.2f%s", white, c, reset)
+			costPart = fmt.Sprintf("%s$%.2f%s", t.Text, c, reset)
 		}
 	}
 
@@ -326,8 +328,7 @@ func main() {
 		if totalCur > 0 {
 			cachePct = float64(cu.CacheReadInputTokens) / float64(totalCur) * 100
 		}
-		tokenPart = fmt.Sprintf("%s%s cache:%.0f%%%s",
-			dim, humanTokens(totalCur), cachePct, reset)
+		tokenPart = fmt.Sprintf("%s%s cache:%.0f%%%s", dim, humanTokens(totalCur), cachePct, reset)
 	}
 
 	ratePart := ""
@@ -350,8 +351,8 @@ func main() {
 	diffPart := ""
 	if in.Cost.TotalLinesAdded > 0 || in.Cost.TotalLinesRemoved > 0 {
 		diffPart = fmt.Sprintf("%s+%d%s %s-%d%s",
-			green, in.Cost.TotalLinesAdded, reset,
-			red, in.Cost.TotalLinesRemoved, reset)
+			t.Success, in.Cost.TotalLinesAdded, reset,
+			t.Danger, in.Cost.TotalLinesRemoved, reset)
 	}
 
 	hashPart := ""

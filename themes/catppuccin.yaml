@@ -1,0 +1,7 @@
+name: Catppuccin Mocha
+colors:
+  primary: "#89B4FA"
+  text: "#CDD6F4"
+  success: "#A6E3A1"
+  warning: "#F9E2AF"
+  danger: "#F38BA8"

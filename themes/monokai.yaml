@@ -1,0 +1,7 @@
+name: Monokai
+colors:
+  primary: "#66D9E8"
+  text: "#F8F8F2"
+  success: "#A6E22E"
+  warning: "#E6DB74"
+  danger: "#F92672"
