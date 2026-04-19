@@ -1,0 +1,7 @@
+# claude-statusline configuration
+# See https://github.com/nathabonfim59/claude-statusline for docs.
+
+# Theme to use for the status bar colors.
+# Built-in themes: default, onedark, monokai, catppuccin
+# You can also create custom themes in ~/.config/claude-statusline/themes/
+theme: default

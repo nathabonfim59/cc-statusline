@@ -14,6 +14,9 @@ import (
 //go:embed themes/*.yaml
 var builtinThemesFS embed.FS
 
+//go:embed config.example.yaml
+var sampleConfig []byte
+
 type ThemeColors struct {
 	Primary string `yaml:"primary"`
 	Text    string `yaml:"text"`
@@ -78,8 +81,7 @@ func runInit() {
 		return
 	}
 
-	content := "theme: default\n"
-	if err := os.WriteFile(cfgPath, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(cfgPath, sampleConfig, 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "error writing config: %v\n", err)
 		os.Exit(1)
 	}
