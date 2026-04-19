@@ -119,12 +119,22 @@ func progressBar(pct float64) (bar, pctPart string) {
 	emptyAfterThresh := barWidth - max(filled, greenEnd)
 
 	var b strings.Builder
-	b.WriteString(green + repeat("█", g))
-	b.WriteString(dim + repeat("░", emptyBeforeThresh))
+	if g > 0 {
+		b.WriteString(green + repeat("█", g))
+	}
+	if emptyBeforeThresh > 0 {
+		b.WriteString(dim + repeat("░", emptyBeforeThresh))
+	}
 	b.WriteString(red + "|" + reset)
-	b.WriteString(yellow + repeat("█", y))
-	b.WriteString(red + repeat("█", r))
-	b.WriteString(dim + repeat("░", emptyAfterThresh) + reset)
+	if y > 0 {
+		b.WriteString(yellow + repeat("█", y))
+	}
+	if r > 0 {
+		b.WriteString(red + repeat("█", r))
+	}
+	if emptyAfterThresh > 0 {
+		b.WriteString(dim + repeat("░", emptyAfterThresh) + reset)
+	}
 	bar = b.String()
 
 	var col string
