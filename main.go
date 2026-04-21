@@ -153,7 +153,7 @@ func progressBar(pct float64, t ResolvedTheme, warn, danger float64) (bar, pctPa
 	if emptyBeforeThresh > 0 {
 		b.WriteString(dim + repeat("░", emptyBeforeThresh))
 	}
-	b.WriteString(t.Danger + "|" + reset)
+	b.WriteString(t.Danger + "┃" + reset)
 	if y > 0 {
 		b.WriteString(t.Warning + repeat("█", y))
 	}
